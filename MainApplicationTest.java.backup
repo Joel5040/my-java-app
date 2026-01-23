@@ -1,0 +1,63 @@
+package com.example.app;
+
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.io.TempDir;
+
+import java.io.ByteArrayOutputStream;
+import java.io.PrintStream;
+import java.nio.file.Path;
+
+import static org.junit.jupiter.api.Assertions.*;
+
+@DisplayName("Main Application Tests")
+class MainApplicationTest {
+    
+    @Test
+    @DisplayName("Test application startup")
+    void testApplicationStartup() {
+        // Redirect System.out to capture output
+        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+        PrintStream originalOut = System.out;
+        System.setOut(new PrintStream(outputStream));
+        
+        try {
+            MainApplication.main(new String[]{});
+            String output = outputStream.toString();
+            
+            // Verify expected output
+            assertTrue(output.contains("Jenkins CI/CD Pipeline Demo Application"));
+            assertTrue(output.contains("Java Version"));
+            assertTrue(output.contains("Application Version: 1.0.0"));
+            
+        } finally {
+            System.setOut(originalOut);
+        }
+    }
+    
+    @Test
+    @DisplayName("Test health check argument")
+    void testHealthCheck() {
+        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+        PrintStream originalOut = System.out;
+        System.setOut(new PrintStream(outputStream));
+        
+        try {
+            MainApplication.main(new String[]{"--health"});
+            String output = outputStream.toString();
+            
+            assertTrue(output.contains("Health Check: OK"));
+            assertTrue(output.contains("Memory Usage"));
+            
+        } finally {
+            System.setOut(originalOut);
+        }
+    }
+    
+    @Test
+    @DisplayName("Basic math test")
+    void testBasicMath() {
+        assertEquals(4, 2 + 2, "Basic math should work");
+        assertTrue(10 > 5, "Comparison should work");
+    }
+}

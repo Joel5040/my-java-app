@@ -1,0 +1,27 @@
+package com.example.app;
+
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+
+public class MainApplication {
+    public static void main(String[] args) {
+        System.out.println("=".repeat(50));
+        System.out.println("🚀 Jenkins CI/CD Pipeline Demo Application");
+        System.out.println("=".repeat(50));
+        System.out.println("✅ Application Version: 1.0.0");
+        System.out.println("✅ Java Version: " + System.getProperty("java.version"));
+        System.out.println("✅ Current Time: " + 
+            LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
+        System.out.println("✅ Running in: " + 
+            (System.getenv("DOCKER_CONTAINER") != null ? "Docker Container" : "Local Environment"));
+        System.out.println("=".repeat(50));
+        
+        // Simple health check endpoint simulation
+        if (args.length > 0 && args[0].equals("--health")) {
+            System.out.println("🔍 Health Check: OK");
+            System.out.println("📊 Memory Usage: " + 
+                (Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory()) / 1024 / 1024 + " MB");
+            System.exit(0);
+        }
+    }
+}
