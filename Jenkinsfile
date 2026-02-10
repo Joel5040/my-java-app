@@ -14,14 +14,26 @@ pipeline {
             }
         }
         
-        // Stage 2: Build and test Java app
-        stage('Build & Test') {
+        // Stage 2: Build Java app
+        stage('Build') {
+            when{
+                expression{
+                    BRANCH_NAME == 'main'
+                }
+            }
             steps {
-                sh 'mvn clean test package'
+                sh 'mvn clean package -DskipTests'
             }
         }
         
-        // Stage 3: Create Docker image
+        // Stage 3: Run Tests
+        stage('Test') {
+            steps {
+                sh 'mvn test'
+            }
+        }
+        
+        // Stage 4: Create Docker image
         stage('Build Docker') {
             steps {
                 sh """
@@ -31,7 +43,7 @@ pipeline {
             }
         }
         
-        // Stage 4: Push to Docker Hub
+        // Stage 5: Push to Docker Hub
         stage('Push to Docker Hub') {
             steps {
                 withCredentials([usernamePassword(
