@@ -22,7 +22,21 @@ pipeline {
             }
         }
         
-        // Stage 3: Version Bump and Push to Jenkins Jobs Branch
+        // Stage 3: Increment Patch Version
+        stage('Increment Patch Version') {
+            steps {
+                script {
+                    // Parse current version and increment patch
+                    sh '''
+                        mvn build-helper:parse-version versions:set \
+                          -DnewVersion=\\${parsedVersion.majorVersion}.\\${parsedVersion.minorVersion}.\\${parsedVersion.nextIncrementVersion} \
+                          versions:commit
+                    '''
+                }
+            }
+        }
+        
+        // Stage 4: Version Bump and Push to Jenkins Jobs Branch
         stage('Version Bump & Push') {
             steps {
                 withCredentials([usernamePassword(
@@ -57,7 +71,7 @@ pipeline {
             }
         }
         
-        // Stage 4: Create Docker image
+        // Stage 5: Create Docker image
         stage('Build Docker') {
             steps {
                 sh """
@@ -67,7 +81,7 @@ pipeline {
             }
         }
         
-        // Stage 5: Push to Docker Hub
+        // Stage 6: Push to Docker Hub
         stage('Push to Docker Hub') {
             steps {
                 withCredentials([usernamePassword(
