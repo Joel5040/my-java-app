@@ -4,6 +4,7 @@ pipeline {
     environment {
         // CHANGE THIS to your Docker Hub username
         DOCKER_IMAGE = "joel5040/my-java-app"
+        GIT_REPO = "https://github.com/joel5040/my-java-app.git"
     }
     
     stages {
@@ -21,7 +22,42 @@ pipeline {
             }
         }
         
-        // Stage 3: Create Docker image
+        // Stage 3: Version Bump and Push to Jenkins Jobs Branch
+        stage('Version Bump & Push') {
+            steps {
+                withCredentials([usernamePassword(
+                    credentialsId: 'github-creds',
+                    usernameVariable: 'GIT_USER',
+                    passwordVariable: 'GIT_TOKEN'
+                )]) {
+                    sh '''
+                        # Configure git user
+                        git config user.email "jenkins@example.com"
+                        git config user.name "Jenkins CI"
+                        
+                        # Diagnostic checks
+                        echo "=== Git Status ==="
+                        git status
+                        echo "=== Git Branch ==="
+                        git branch -a
+                        echo "=== Git Config ==="
+                        git config --list
+                        
+                        # Rewrite remote URL with credentials for authentication
+                        git remote set-url origin "https://${GIT_USER}:${GIT_TOKEN}@github.com/joel5040/my-java-app.git"
+                        
+                        # Stage and commit changes
+                        git add .
+                        git commit -m "ci: version bump" || echo "No changes to commit"
+                        
+                        # Push to jenkins-jobs branch
+                        git push origin HEAD:jenkins-jobs
+                    '''
+                }
+            }
+        }
+        
+        // Stage 4: Create Docker image
         stage('Build Docker') {
             steps {
                 sh """
@@ -31,7 +67,7 @@ pipeline {
             }
         }
         
-        // Stage 4: Push to Docker Hub
+        // Stage 5: Push to Docker Hub
         stage('Push to Docker Hub') {
             steps {
                 withCredentials([usernamePassword(
