@@ -1,6 +1,11 @@
 pipeline {
     agent any
     
+    tools {
+        // Use the Maven tool configured in Jenkins Global Tool Configuration
+        maven 'Maven-3.9.12'
+    }
+    
     environment {
         // CHANGE THIS to your Docker Hub username
         DOCKER_IMAGE = "joel5040/my-java-app"
@@ -26,10 +31,9 @@ pipeline {
         stage('Increment Patch Version') {
             steps {
                 script {
-                    // Parse current version and increment patch
                     sh '''
                         mvn build-helper:parse-version versions:set \
-                          -DnewVersion=\\${parsedVersion.majorVersion}.\\${parsedVersion.minorVersion}.\\${parsedVersion.nextIncrementVersion} \
+                          -DnewVersion=${parsedVersion.majorVersion}.${parsedVersion.minorVersion}.${parsedVersion.nextIncrementVersion} \
                           versions:commit
                     '''
                 }
@@ -45,11 +49,9 @@ pipeline {
                     passwordVariable: 'GIT_TOKEN'
                 )]) {
                     sh '''
-                        # Configure git user
                         git config user.email "jenkins@example.com"
                         git config user.name "Jenkins CI"
                         
-                        # Diagnostic checks
                         echo "=== Git Status ==="
                         git status
                         echo "=== Git Branch ==="
@@ -57,14 +59,10 @@ pipeline {
                         echo "=== Git Config ==="
                         git config --list
                         
-                        # Rewrite remote URL with credentials for authentication
                         git remote set-url origin "https://${GIT_USER}:${GIT_TOKEN}@github.com/joel5040/my-java-app.git"
                         
-                        # Stage and commit changes
                         git add .
                         git commit -m "ci: version bump" || echo "No changes to commit"
-                        
-                        # Push to jenkins-jobs branch
                         git push origin HEAD:jenkins-jobs
                     '''
                 }
@@ -90,7 +88,7 @@ pipeline {
                     passwordVariable: 'DOCKER_PASS'
                 )]) {
                     sh """
-                        echo \$DOCKER_PASS | docker login -u \$DOCKER_USER --password-stdin
+                        echo $DOCKER_PASS | docker login -u $DOCKER_USER --password-stdin
                         docker push ${DOCKER_IMAGE}:latest
                         docker push ${DOCKER_IMAGE}:${env.BUILD_NUMBER}
                     """
