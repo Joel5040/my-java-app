@@ -18,11 +18,8 @@ pipeline {
             }
         }
         
-        // Stage 2: Build Java app (only on main)
+        // Stage 2: Build Java app (runs on all branches now)
         stage('Build') {
-            when {
-                expression { BRANCH_NAME == 'main' }
-            }
             steps {
                 sh 'mvn clean package -DskipTests'
             }
