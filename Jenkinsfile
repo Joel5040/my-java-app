@@ -1,8 +1,12 @@
 pipeline {
     agent any
     
+    tools {
+        maven 'Maven-3.9.12'
+        jdk 'JDK17'
+    }
+    
     environment {
-        // CHANGE THIS to your Docker Hub username
         DOCKER_IMAGE = "joel5040/my-java-app"
     }
     
@@ -14,12 +18,10 @@ pipeline {
             }
         }
         
-        // Stage 2: Build Java app
+        // Stage 2: Build Java app (only on main)
         stage('Build') {
-            when{
-                expression{
-                    BRANCH_NAME == 'main'
-                }
+            when {
+                expression { BRANCH_NAME == 'main' }
             }
             steps {
                 sh 'mvn clean package -DskipTests'
@@ -52,7 +54,7 @@ pipeline {
                     passwordVariable: 'DOCKER_PASS'
                 )]) {
                     sh """
-                        echo \$DOCKER_PASS | docker login -u \$DOCKER_USER --password-stdin
+                        echo $DOCKER_PASS | docker login -u $DOCKER_USER --password-stdin
                         docker push ${DOCKER_IMAGE}:latest
                         docker push ${DOCKER_IMAGE}:${env.BUILD_NUMBER}
                     """
@@ -62,14 +64,8 @@ pipeline {
     }
     
     post {
-        always {
-            echo 'Pipeline finished'
-        }
-        success {
-            echo '✅ Success!'
-        }
-        failure {
-            echo '❌ Failed!'
-        }
+        always { echo 'Pipeline finished' }
+        success { echo '✅ Success!' }
+        failure { echo '❌ Failed!' }
     }
 }
